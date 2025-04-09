@@ -26,7 +26,7 @@ package net.runelite.cache.models;
 
 public final class JagexColor
 {
-	public static final double BRIGHTNESS_MAX = .6;
+	public static final double BRIGHTNESS_MAX = .5;
 	public static final double BRIGHTNESS_HIGH = .7;
 	public static final double BRIGHTNESS_LOW = .8;
 	public static final double BRIGHTNESS_MIN = .9;
@@ -142,6 +142,7 @@ public final class JagexColor
 		return rgb;
 	}
 
+
 	public static int HSLtoRGBFull(int hsl)
 	{
 		double hue = (double) unpackHueFull(hsl) / 256.D;
@@ -194,33 +195,146 @@ public final class JagexColor
 		return rgb;
 	}
 
-	public static int adjustForBrightness(int rgb, double brightness)
-	{
-		double r = (double) (rgb >> 16) / 256.0D;
-		double g = (double) (rgb >> 8 & 255) / 256.0D;
-		double b = (double) (rgb & 255) / 256.0D;
-
-		r = Math.pow(r, brightness);
-		g = Math.pow(g, brightness);
-		b = Math.pow(b, brightness);
-
-		return ((int) (r * 256.0D) << 16)
-			| ((int) (g * 256.0D) << 8)
-			| (int) (b * 256.0D);
+	public static int[] createPalette(double brightness) {
+		return createPalette(brightness, 0, 512);
 	}
 
-	public static int[] createPalette(double brightness)
+	public static int[] createPalette(double brightness, int min, int max)
 	{
 		int[] colorPalette = new int[65536];
-		for (int i = 0; i < colorPalette.length; i++)
+		int var4 = min * 128;
+
+		for (int var5 = min; var5 < max; ++var5)
 		{
-			colorPalette[i] = HSLtoRGB((short) i, brightness);
+			double var6 = (double) (var5 >> 3) / 64.0D + 0.0078125D;
+			double var8 = (double) (var5 & 7) / 8.0D + 0.0625D;
+
+			for (int var10 = 0; var10 < 128; ++var10)
+			{
+				double var11 = (double) var10 / 128.0D;
+				double var13 = var11;
+				double var15 = var11;
+				double var17 = var11;
+				if (var8 != 0.0D)
+				{
+					double var19;
+					if (var11 < 0.5D)
+					{
+						var19 = var11 * (1.0D + var8);
+					}
+					else
+					{
+						var19 = var11 + var8 - var11 * var8;
+					}
+
+					double var21 = 2.0D * var11 - var19;
+					double var23 = var6 + 0.3333333333333333D;
+					if (var23 > 1.0D)
+					{
+						--var23;
+					}
+
+					double var27 = var6 - 0.3333333333333333D;
+					if (var27 < 0.0D)
+					{
+						++var27;
+					}
+
+					if (6.0D * var23 < 1.0D)
+					{
+						var13 = var21 + (var19 - var21) * 6.0D * var23;
+					}
+					else if (2.0D * var23 < 1.0D)
+					{
+						var13 = var19;
+					}
+					else if (3.0D * var23 < 2.0D)
+					{
+						var13 = var21 + (var19 - var21) * (0.6666666666666666D - var23) * 6.0D;
+					}
+					else
+					{
+						var13 = var21;
+					}
+
+					if (6.0D * var6 < 1.0D)
+					{
+						var15 = var21 + (var19 - var21) * 6.0D * var6;
+					}
+					else if (2.0D * var6 < 1.0D)
+					{
+						var15 = var19;
+					}
+					else if (3.0D * var6 < 2.0D)
+					{
+						var15 = var21 + (var19 - var21) * (0.6666666666666666D - var6) * 6.0D;
+					}
+					else
+					{
+						var15 = var21;
+					}
+
+					if (6.0D * var27 < 1.0D)
+					{
+						var17 = var21 + (var19 - var21) * 6.0D * var27;
+					}
+					else if (2.0D * var27 < 1.0D)
+					{
+						var17 = var19;
+					}
+					else if (3.0D * var27 < 2.0D)
+					{
+						var17 = var21 + (var19 - var21) * (0.6666666666666666D - var27) * 6.0D;
+					}
+					else
+					{
+						var17 = var21;
+					}
+				}
+
+				int var29 = (int) (var13 * 256.0D);
+				int var20 = (int) (var15 * 256.0D);
+				int var30 = (int) (var17 * 256.0D);
+				int var22 = var30 + (var20 << 8) + (var29 << 16);
+				var22 = adjustForBrightness(var22, brightness);
+				if (var22 == 0)
+				{
+					var22 = 1;
+				}
+
+				colorPalette[var4++] = var22;
+			}
 		}
+
 		return colorPalette;
+	}
+
+
+	public static int adjustForBrightness(int rgb, double brightness) {
+		double var3 = (double)(rgb >> 16) / 256.0D; // L: 143
+		double var5 = (double)(rgb >> 8 & 255) / 256.0D; // L: 144
+		double var7 = (double)(rgb & 255) / 256.0D; // L: 145
+		var3 = Math.pow(var3, brightness); // L: 146
+		var5 = Math.pow(var5, brightness); // L: 147
+		var7 = Math.pow(var7, brightness); // L: 148
+		int var9 = (int)(var3 * 256.0D); // L: 149
+		int var10 = (int)(var5 * 256.0D); // L: 150
+		int var11 = (int)(var7 * 256.0D); // L: 151
+		return var11 + (var10 << 8) + (var9 << 16); // L: 152
 	}
 
 	public static int getRGBFull(int hsl)
 	{
 		return HSLtoRGBFull(hsl);
+	}
+
+	public static int RGBtoBGR(int rgb){
+		int r = (rgb >> 16) & 0xff;
+		int g = (rgb >> 8) & 0xff;
+
+        int bgr = rgb & 0xff;
+		bgr = (bgr << 8) + g;
+		bgr = (bgr << 8) + r;
+		return bgr;
 	}
 }
