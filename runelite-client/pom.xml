@@ -45,6 +45,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>net.runelite</groupId>
+			<artifactId>cache</artifactId>
+			<version>1.11.23-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
