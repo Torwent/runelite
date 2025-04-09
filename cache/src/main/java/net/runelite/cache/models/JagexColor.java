@@ -223,4 +223,15 @@ public final class JagexColor
 	{
 		return HSLtoRGBFull(hsl);
 	}
+
+	public static int RGBtoBGR(int rgb){
+		int r = (rgb >> 16) & 0xff;
+		int g = (rgb >> 8) & 0xff;
+		int b = rgb & 0xff;
+
+		int bgr = b;
+		bgr = (bgr << 8) + g;
+		bgr = (bgr << 8) + r;
+		return bgr;
+	}
 }

@@ -45,6 +45,12 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>net.runelite</groupId>
+			<artifactId>cache</artifactId>
+			<version>1.11.7-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
@@ -295,6 +301,12 @@
 			<artifactId>mockwebserver</artifactId>
 			<version>3.14.9</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.runelite</groupId>
+			<artifactId>cache</artifactId>
+			<version>1.11.7-SNAPSHOT</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 
