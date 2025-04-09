@@ -28,10 +28,12 @@ package net.runelite.cache.definitions;
 import lombok.Data;
 import net.runelite.cache.definitions.providers.SpriteProvider;
 
+import static net.runelite.cache.models.JagexColor.adjustForBrightness;
+
 @Data
 public class TextureDefinition
 {
-	public int field1777;
+	public int averageRGB;
 	public boolean field1778;
 	private int id;
 	private int[] fileIds;
@@ -43,7 +45,7 @@ public class TextureDefinition
 
 	public transient int[] pixels;
 
-	public boolean method2680(double var1, int var3, SpriteProvider spriteProvider)
+	public boolean load(double var1, int var3, SpriteProvider spriteProvider)
 	{
 		int var5 = var3 * var3;
 		this.pixels = new int[var5];
@@ -78,7 +80,7 @@ public class TextureDefinition
 
 			for (var11 = 0; var11 < var9.length; ++var11)
 			{
-				var9[var11] = adjustRGB(var9[var11], var1);
+				var9[var11] = adjustForBrightness(var9[var11], var1);
 			}
 
 			if (var6 == 0)
@@ -132,19 +134,5 @@ public class TextureDefinition
 		}
 
 		return true;
-	}
-
-	static int adjustRGB(int var0, double var1)
-	{
-		double var3 = (double) (var0 >> 16) / 256.0D;
-		double var5 = (double) (var0 >> 8 & 255) / 256.0D;
-		double var7 = (double) (var0 & 255) / 256.0D;
-		var3 = Math.pow(var3, var1);
-		var5 = Math.pow(var5, var1);
-		var7 = Math.pow(var7, var1);
-		int var9 = (int) (var3 * 256.0D);
-		int var10 = (int) (var5 * 256.0D);
-		int var11 = (int) (var7 * 256.0D);
-		return var11 + (var10 << 8) + (var9 << 16);
 	}
 }
