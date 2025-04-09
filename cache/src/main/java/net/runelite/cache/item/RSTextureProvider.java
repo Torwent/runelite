@@ -40,11 +40,9 @@ public class RSTextureProvider
 	public RSTextureProvider(TextureProvider textureProvider, SpriteProvider spriteProvider)
 	{
 		this.spriteProvider = spriteProvider;
-		this.size = 0;
-		this.brightness = 1.0D;
-		this.width = 128;
 		this.maxSize = 20;
 		this.size = this.maxSize;
+		this.brightness = 1.0D;
 		this.brightness = 0.8D;
 		this.width = 128;
 

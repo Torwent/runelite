@@ -26,7 +26,7 @@ package net.runelite.cache.models;
 
 public final class JagexColor
 {
-	public static final double BRIGHTNESS_MAX = .6;
+	public static final double BRIGHTNESS_MAX = .5;
 	public static final double BRIGHTNESS_HIGH = .7;
 	public static final double BRIGHTNESS_LOW = .8;
 	public static final double BRIGHTNESS_MIN = .9;
@@ -142,6 +142,7 @@ public final class JagexColor
 		return rgb;
 	}
 
+
 	public static int HSLtoRGBFull(int hsl)
 	{
 		double hue = (double) unpackHueFull(hsl) / 256.D;
@@ -219,8 +220,32 @@ public final class JagexColor
 		return colorPalette;
 	}
 
+
+	public static int setGamma(int arg0, double arg1) {
+		double var3 = (double) (arg0 >> 16) / 256.0D;
+		double var5 = (double) (arg0 >> 8 & 0xFF) / 256.0D;
+		double var7 = (double) (arg0 & 0xFF) / 256.0D;
+		double var9 = Math.pow(var3, arg1);
+		double var11 = Math.pow(var5, arg1);
+		double var13 = Math.pow(var7, arg1);
+		int var15 = (int) (var9 * 256.0D);
+		int var16 = (int) (var11 * 256.0D);
+		int var17 = (int) (var13 * 256.0D);
+		return (var15 << 16) + (var16 << 8) + var17;
+	}
+
 	public static int getRGBFull(int hsl)
 	{
 		return HSLtoRGBFull(hsl);
+	}
+
+	public static int RGBtoBGR(int rgb){
+		int r = (rgb >> 16) & 0xff;
+		int g = (rgb >> 8) & 0xff;
+
+        int bgr = rgb & 0xff;
+		bgr = (bgr << 8) + g;
+		bgr = (bgr << 8) + r;
+		return bgr;
 	}
 }

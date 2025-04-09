@@ -24,6 +24,8 @@
  */
 package net.runelite.cache.item;
 
+import net.runelite.cache.models.CircularAngle;
+
 class Model extends Renderable
 {
 	boolean[] faceClipped = new boolean[6500];
@@ -72,8 +74,8 @@ class Model extends Renderable
 
 	static
 	{
-		Model_sine = Graphics3D.SINE;
-		Model_cosine = Graphics3D.COSINE;
+		Model_sine = CircularAngle.SINE;
+		Model_cosine = CircularAngle.COSINE;
 	}
 
 	Model()
@@ -163,8 +165,7 @@ class Model extends Renderable
 			{
 				int sinZ = Model_sine[xyRotation];
 				int cosZ = Model_cosine[xyRotation];
-				int tmp;
-				tmp = y * sinZ + x * cosZ >> 16;
+				int tmp  = y * sinZ + x * cosZ >> 16;
 				y = y * cosZ - x * sinZ >> 16;
 				x = tmp;
 			}
@@ -173,8 +174,7 @@ class Model extends Renderable
 			{
 				int sinR1 = Model_sine[yzRotation];
 				int cosR1 = Model_cosine[yzRotation];
-				int tmp;
-				tmp = y * cosR1 - z * sinR1 >> 16;
+				int tmp = y * cosR1 - z * sinR1 >> 16;
 				z = y * sinR1 + z * cosR1 >> 16;
 				y = tmp;
 			}
@@ -183,8 +183,7 @@ class Model extends Renderable
 			{
 				int sinY = Model_sine[xzRotation];
 				int cosY = Model_cosine[xzRotation];
-				int tmp;
-				tmp = z * sinY + x * cosY >> 16;
+				int tmp  = z * sinY + x * cosY >> 16;
 				z = z * cosY - x * sinY >> 16;
 				x = tmp;
 			}
@@ -500,7 +499,7 @@ class Model extends Renderable
 		}
 		else
 		{
-			graphics.rasterGouraud(modelViewportXs[var2], modelViewportXs[var3], modelViewportXs[var4], modelViewportYs[var2], modelViewportYs[var3], modelViewportYs[var4], this.faceColors1[face], this.faceColors2[face], this.faceColors3[face]);
+			graphics.gouraudTriangle(modelViewportXs[var2], modelViewportXs[var3], modelViewportXs[var4], modelViewportYs[var2], modelViewportYs[var3], modelViewportYs[var4], this.faceColors1[face], this.faceColors2[face], this.faceColors3[face]);
 		}
 	}
 }
