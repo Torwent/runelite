@@ -580,8 +580,6 @@ public class SimbaCollisionMapDumper
 
 					if (pos.getZ() == tileZ && (region.getTileSetting(z, localX, localY) & 24) == 0)
 						planeLocs.add(loc);
-					//else if (z < 3 && pos.getZ() == tileZ + 1 && (region.getTileSetting(z + 1, localX, localY) & 8) != 0)
-					//	pushDownLocs.add(loc);
 				}
 
 				for (List<Location> locs : layers)
@@ -739,89 +737,6 @@ public class SimbaCollisionMapDumper
 								}
 							}
 						}
-					}
-				}
-			}
-		}
-	}
-
-	private void drawObjects2(BufferedImage image, int drawBaseX, int drawBaseY, Region region, int z)
-	{
-		List<Location> planeLocs = new ArrayList<>();
-		List<Location> pushDownLocs = new ArrayList<>();
-		List<List<Location>> layers = Arrays.asList(planeLocs, pushDownLocs);
-
-		for (int localX = 0; localX < Region.X; localX++) {
-			int regionX = localX + region.getBaseX();
-			for (int localY = 0; localY < Region.Y; localY++) {
-				int regionY = localY + region.getBaseY();
-
-				planeLocs.clear();
-				pushDownLocs.clear();
-				boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
-
-				int tileZ = z + (isBridge ? 1 : 0);
-
-				for (Location loc : region.getLocations()) {
-					ObjectDefinition object = findObject(loc.getId());
-					var position = loc.getPosition();
-
-					var x = position.getX();
-					var y = position.getY();
-
-					var orientation = loc.getOrientation();
-
-					// rotate according to the orientation
-					int sizeX;
-					int sizeY;
-					if (orientation == 1 || orientation == 3) {
-						sizeX = object.getSizeY();
-						sizeY = object.getSizeX();
-					} else {
-						sizeX = object.getSizeX();
-						sizeY = object.getSizeY();
-					}
-
-					var locationType = loc.getType();
-					var interactType = object.getInteractType();
-
-					if (locationType >= 4 && locationType <= 8) continue; // wall decoration
-
-					if (locationType == 22) { // floor decoration
-						if (interactType != 1) continue;
-						for (int sX = 0; sX < sizeX; sX++) {
-							for (int sY = 0; sY < sizeY; sY++) {
-								if (image.getRGB(x + sX, y + sY) != wallColor) {
-									image.setRGB(x + sX, y + sY, collisionColor);
-								}
-							}
-						}
-					}
-					else if (locationType >= 0 && locationType <= 3) { // walls
-						if (interactType == 0) continue;
-						for (int sX = 0; sX < sizeX; sX++) {
-							for (int sY = 0; sY < sizeY; sY++) {
-								if (image.getRGB(x + sX, y + sY) != wallColor) {
-									image.setRGB(x + sX, y + sY, collisionColor);
-								}
-							}
-						}
-					}
-					else if (locationType >= 9 && locationType <= 11) { // game object
-						if (interactType == 0) continue;
-						for (int sX = 0; sX < sizeX; sX++) {
-							for (int sY = 0; sY < sizeY; sY++) {
-								if (image.getRGB(x + sX, y + sY) != wallColor) {
-									image.setRGB(x + sX, y + sY, collisionColor);
-								}
-							}
-						}
-					}
-					else if (locationType >= 12 && locationType <= 21) {
-						if (interactType == 0) continue;
-
-					} else {
-						throw new IllegalArgumentException("expect:  0 =< locationType <= 22, found:" + locationType);
 					}
 				}
 			}

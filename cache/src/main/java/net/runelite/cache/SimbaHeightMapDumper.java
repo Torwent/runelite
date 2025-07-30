@@ -46,8 +46,8 @@ public class SimbaHeightMapDumper
 {
 	private static final Logger logger = LoggerFactory.getLogger(SimbaHeightMapDumper.class);
 	private static final int MAP_SCALE = 4;
-	private static final float MAX_HEIGHT = 3400f;
-	public static boolean exportFullMap = false;
+	private static final float MAX_HEIGHT = 6048f;
+	public static boolean exportFullMap = true;
 	private static boolean exportChunks = true;
 	private static final boolean exportEmptyImages = true;
 	private final Store store;
@@ -114,12 +114,10 @@ public class SimbaHeightMapDumper
 				{
 					int drawY = drawBaseY + (Region.Y - 1 - y);
 
-					boolean isBridge = (region.getTileSetting(1, x, Region.Y - y - 1) & 2) != 0;
-
-					int height;
-
-					if (isBridge) height = region.getTileHeight(z + 1, x, y);
-					else height = region.getTileHeight(z, x, y);
+					int height = Math.min(
+							Math.min(region.getTileHeight(0, x, y), region.getTileHeight( 1, x, y)),
+							Math.min(region.getTileHeight(2, x, y), region.getTileHeight(3, x, y))
+					);
 
 					if (height > max) max = height;
 					if (height < min) min = height;

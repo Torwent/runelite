@@ -295,10 +295,7 @@ public class SimbaMapImageDumper
 
 	private void drawRegions(BufferedImage image, int drawBaseX, int drawBaseY, int z, Region region)
 	{
-		if (!renderMap)
-		{
-			return;
-		}
+		if (!renderMap) return;
 
 		int[][][] map = new int[4][][];
 
@@ -308,18 +305,12 @@ public class SimbaMapImageDumper
 			{
 				boolean isBridge = (region.getTileSetting(1, x, Region.Y - y - 1) & 2) != 0;
 				int tileZ = z + (isBridge ? 1 : 0);
-				if (tileZ >= Region.Z)
-				{
-					continue;
-				}
+				if (tileZ >= Region.Z) continue;
 
 				int tileSetting = region.getTileSetting(z, x, Region.Y - y - 1);
 				if ((tileSetting & 24) == 0)
 				{
-					if (z == 0 && isBridge)
-					{
-						drawTile(image, map, region, drawBaseX, drawBaseY, 0, x, y);
-					}
+					if (z == 0 && isBridge) drawTile(image, map, region, drawBaseX, drawBaseY, 0, x, y);
 					drawTile(image, map, region, drawBaseX, drawBaseY, tileZ, x, y);
 				}
 
