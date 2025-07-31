@@ -146,7 +146,7 @@ public class ItemFinderPlugin extends Plugin {
                 Filter();
                 System.out.println("Filtered item count: " + filteredItems.size());
 
-                ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir, "items.zip"))));
+                ZipOutputStream zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(dir, "items-imgs.zip"))));
 
                 FileWriter item = new FileWriter(new File(dir, "item.txt"));
                 FileWriter id = new FileWriter(new File(dir, "id.txt"));
