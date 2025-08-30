@@ -303,11 +303,12 @@ public class SimbaMapImageDumper
 		{
 			for (int y = 0; y < Region.Y; ++y)
 			{
-				boolean isBridge = (region.getTileSetting(1, x, Region.Y - y - 1) & 2) != 0;
+				int invertedY = Region.Y - y - 1;
+				boolean isBridge = (region.getTileSetting(1, x, invertedY) & 2) != 0;
 				int tileZ = z + (isBridge ? 1 : 0);
 				if (tileZ >= Region.Z) continue;
 
-				int tileSetting = region.getTileSetting(z, x, Region.Y - y - 1);
+				int tileSetting = region.getTileSetting(z, x, invertedY);
 				if ((tileSetting & 24) == 0)
 				{
 					if (z == 0 && isBridge) drawTile(image, map, region, drawBaseX, drawBaseY, 0, x, y);
@@ -316,7 +317,7 @@ public class SimbaMapImageDumper
 
 				if (tileZ < 3)
 				{
-					int upTileSetting = region.getTileSetting(z + 1, x, Region.Y - y - 1);
+					int upTileSetting = region.getTileSetting(z + 1, x, invertedY);
 					if ((upTileSetting & 8) != 0)
 					{
 						drawTile(image, map, region, drawBaseX, drawBaseY, tileZ + 1, x, y);

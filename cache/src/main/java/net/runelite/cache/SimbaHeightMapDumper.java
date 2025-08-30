@@ -112,26 +112,28 @@ public class SimbaHeightMapDumper
 				int drawX = drawBaseX + x;
 				for (int y = 0; y < Region.Y; ++y)
 				{
-					int drawY = drawBaseY + (Region.Y - 1 - y);
+					boolean isBridge = (region.getTileSetting(1, x, y) & 2) != 0;
 
-					int height = Math.min(
-							Math.min(region.getTileHeight(0, x, y), region.getTileHeight( 1, x, y)),
-							Math.min(region.getTileHeight(2, x, y), region.getTileHeight(3, x, y))
-					);
+					int drawY = drawBaseY + Region.Y - 1 - y;
+					int height = region.getTileHeight(z, x, y);
+					int tileSetting = region.getTileSetting(z, x, y);
+
+					if ((tileSetting & 24) == 0)
+					{
+						if (z == 0 && isBridge) height = region.getTileHeight(1, x, y);
+					}
 
 					if (height > max) max = height;
 					if (height < min) min = height;
 
-					int rgb = toColor(height);
-
-					drawMapSquare(image, drawX, drawY, rgb);
+					drawMapSquare(image, drawX, drawY, toColor(height));
 				}
 			}
 
 			if (exportChunks) {
 				BufferedImage chunk = image.getSubimage(drawBaseX * MAP_SCALE, drawBaseY * MAP_SCALE, Region.X * MAP_SCALE, Region.Y * MAP_SCALE);
 				if (!isImageEmpty(chunk)) {
-					zip.putNextEntry(new ZipEntry(region.getRegionX() + "-" + region.getRegionY() + ".png"));
+					zip.putNextEntry(new ZipEntry(z + "/" + region.getRegionX() + "-" + region.getRegionY() + ".png"));
 					ImageIO.write(chunk, "png", zip);
 				}
 			}
@@ -220,14 +222,18 @@ public class SimbaHeightMapDumper
 				zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "heightmap.zip"))));
 			}
 
-			BufferedImage image = dumper.drawRegions(0, zip);
+			for (int i = 0; i < Region.Z; ++i)
+			{
+				BufferedImage image = dumper.drawRegions(i, zip);
+				if (exportFullMap) {
+					File imageFile = new File(outDir, "img-" + i + ".png");
+					ImageIO.write(image, "png", imageFile);
+					log.info("Wrote image {}", imageFile);
+				}
+			}
+
 			if (zip != null) zip.close();
 
-			if (exportFullMap) {
-				File imageFile = new File(outDir, "img.png");
-				ImageIO.write(image, "png", imageFile);
-				log.info("Wrote image {}", imageFile);
-			}
 		}
 	}
 }
