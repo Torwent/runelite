@@ -626,8 +626,13 @@ public class SimbaCollisionMapDumper
 						int drawX = (drawBaseX + localX) * MAP_SCALE;
 						int drawY = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
 
+
+
 						if (type >= 0 && type <= 3)
 						{
+							if (object.getId() == 24720) { //wintertodt invisible non collision walls
+								continue;
+							}
 							int rgb = wallColor;
 							if (object.getWallOrDoor() != 0) rgb = doorColor;
 
