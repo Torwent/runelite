@@ -127,6 +127,7 @@ public class SimbaMapImageDumper
 
 	public static void main(String[] args) throws IOException
 	{
+		long start = System.currentTimeMillis();
 		Options options = new Options();
 		options.addOption(Option.builder().longOpt("cachedir").hasArg().required().build());
 		options.addOption(Option.builder().longOpt("cachename").hasArg().required().build());
@@ -192,6 +193,9 @@ public class SimbaMapImageDumper
 
 			if (zip != null) zip.close();
 		}
+
+		long end = System.currentTimeMillis();
+		System.out.println("SimbaMapImageDumper took " + (end - start) + " ms");
 	}
 
 	protected double random()
@@ -586,6 +590,197 @@ public class SimbaMapImageDumper
 	}
 
 	private void drawObjects(BufferedImage image, int drawBaseX, int drawBaseY, Region region, int z)
+	{
+		Map<Long, List<Location>> locIndex = new HashMap<>();
+
+		for (Location loc : region.getLocations()) {
+			Position pos = loc.getPosition();
+			long key = (((long) pos.getX()) << 32) | ((long) pos.getY() << 16) | pos.getZ();
+			locIndex.computeIfAbsent(key, k -> new ArrayList<>()).add(loc);
+		}
+
+		int baseX = region.getBaseX();
+		int baseY = region.getBaseY();
+
+		for (int localX = 0; localX < Region.X; localX++) {
+			int regionX = baseX + localX;
+
+			for (int localY = 0; localY < Region.Y; localY++) {
+				int regionY = baseY + localY;
+
+				boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+				int tileZ = z + (isBridge ? 1 : 0);
+
+				long keyMain = (((long) regionX) << 32) | ((long) regionY << 16) | tileZ;
+				long keyAbove = (((long) regionX) << 32) | ((long) regionY << 16) | (tileZ + 1);
+
+				List<Location> candidatesMain = locIndex.getOrDefault(keyMain, Collections.emptyList());
+				List<Location> candidatesAbove = locIndex.getOrDefault(keyAbove, Collections.emptyList());
+
+				List<Location> planeLocs = new ArrayList<>();
+				List<Location> pushDownLocs = new ArrayList<>();
+
+				int tileSettingZ = region.getTileSetting(z, localX, localY);
+
+				if ((tileSettingZ & 24) == 0) {
+					planeLocs.addAll(candidatesMain);
+				}
+
+				if (z < 3) {
+					int tileSettingZ1 = region.getTileSetting(z + 1, localX, localY);
+					if ((tileSettingZ1 & 8) != 0) {
+						pushDownLocs.addAll(candidatesAbove);
+					}
+				}
+
+				for (List<Location> locs : Arrays.asList(planeLocs, pushDownLocs)) {
+					for (Location location : locs) {
+						int type = location.getType();
+						if (type >= 0 && type <= 3)
+						{
+							int rotation = location.getOrientation();
+
+							ObjectDefinition object = findObject(location.getId());
+
+							int drawX = (drawBaseX + localX) * MAP_SCALE;
+							int drawY = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
+
+							int rgb = wallColor;
+							if (object.getWallOrDoor() != 0)
+							{
+								rgb = doorColor;
+							}
+							rgb |= 0xFF000000;
+
+							if (object.getMapSceneID() != -1)
+							{
+								blitMapDecoration(image, drawX, drawY, object);
+							}
+							else if (drawX >= 0 && drawY >= 0 && drawX < image.getWidth() && drawY < image.getHeight())
+							{
+								if (type == 0 || type == 2)
+								{
+									if (rotation == 0)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX, drawY + i, rgb);
+										}
+									}
+									else if (rotation == 1)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + i, drawY, rgb);
+										}
+									}
+									else if (rotation == 2)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + MAP_SCALE-1, drawY + i, rgb);
+										}
+									}
+									else if (rotation == 3)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + i, drawY + MAP_SCALE-1, rgb);
+										}
+									}
+								}
+
+								if (type == 3)
+								{
+									if (rotation == 0) image.setRGB(drawX, drawY, rgb);
+									else if (rotation == 1)image.setRGB(drawX + MAP_SCALE-1, drawY, rgb);
+									else if (rotation == 2) image.setRGB(drawX + MAP_SCALE-1, drawY + MAP_SCALE-1, rgb);
+									else if (rotation == 3) image.setRGB(drawX , drawY + MAP_SCALE-1, rgb);
+								}
+
+								if (type == 2)
+								{
+									if (rotation == 0)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + i, drawY, rgb);
+										}
+									}
+									else if (rotation == 1)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + MAP_SCALE-1, drawY + i, rgb);
+										}
+									}
+									else if (rotation == 2)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX + i, drawY + MAP_SCALE-1, rgb);
+										}
+									}
+									else if (rotation == 3)
+									{
+										for (int i = 0; i < MAP_SCALE; i++) {
+											image.setRGB(drawX, drawY + i, rgb);
+										}
+									}
+								}
+							}
+						}
+
+						if (type == 9)
+						{
+							int rotation = location.getOrientation();
+
+							ObjectDefinition object = findObject(location.getId());
+
+							int drawX = (drawBaseX + localX) * MAP_SCALE;
+							int drawY = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
+
+							if (object.getMapSceneID() != -1)
+							{
+								blitMapDecoration(image, drawX, drawY, object);
+								continue;
+							}
+
+							if (drawX >= 0 && drawY >= 0 && drawX < image.getWidth() && drawY < image.getHeight())
+							{
+								int rgb = 0xFFEE_EEEE;
+								if (object.getWallOrDoor() != 0)
+								{
+									rgb = 0xFFEE_0000;
+								}
+
+								if (rotation != 0 && rotation != 2)
+								{
+									for (int i = 0; i < MAP_SCALE; i++) {
+										image.setRGB(drawX + i, drawY + i, rgb);
+									}
+								}
+								else
+								{
+									for (int i = 0; i < MAP_SCALE; i++) {
+										image.setRGB(drawX + i, drawY + (MAP_SCALE - 1 - i), rgb);
+									}
+								}
+							}
+						}
+
+						if (type == 22 || (type >= 9 && type <= 11))
+						{
+							ObjectDefinition object = findObject(location.getId());
+
+							int drawX = (drawBaseX + localX) * MAP_SCALE;
+							int drawY = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
+
+							if (object.getMapSceneID() != -1)
+							{
+								blitMapDecoration(image, drawX, drawY, object);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void drawObjects2(BufferedImage image, int drawBaseX, int drawBaseY, Region region, int z)
 	{
 		if (!renderObjects) return;
 
