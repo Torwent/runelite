@@ -167,6 +167,7 @@ public class SimbaHeightMapDumper
 
 	public static void main(String[] args) throws IOException
 	{
+		long start = System.currentTimeMillis();
 		Options options = new Options();
 		options.addOption(Option.builder().longOpt("cachedir").hasArg().required().build());
 		options.addOption(Option.builder().longOpt("cachename").hasArg().required().build());
@@ -193,7 +194,6 @@ public class SimbaHeightMapDumper
 		final String xteaJSONPath = mainDir + File.separator + cacheName + File.separator + cacheName.replace("cache-", "keys-") + ".json";
 		final String outputDirectory = cmd.getOptionValue("outputdir") + File.separator + cacheName;
 		final String outputDirectoryEx = outputDirectory + File.separator + "heightmap";
-
 
 		XteaKeyManager xteaKeyManager = new XteaKeyManager();
 		try (FileInputStream fin = new FileInputStream(xteaJSONPath))
@@ -232,8 +232,13 @@ public class SimbaHeightMapDumper
 				}
 			}
 
+
 			if (zip != null) zip.close();
 
 		}
+
+		long end = System.currentTimeMillis();
+		System.out.println("SimbaHeightMapDumper took " + (end - start) + " ms");
 	}
+
 }

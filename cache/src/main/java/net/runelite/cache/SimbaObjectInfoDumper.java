@@ -83,6 +83,7 @@ public class SimbaObjectInfoDumper
 
 	public static void main(String[] args) throws IOException
 	{
+		long start = System.currentTimeMillis();
 		Options options = new Options();
 		options.addOption(Option.builder().longOpt("cachedir").hasArg().required().build());
 		options.addOption(Option.builder().longOpt("cachename").hasArg().required().build());
@@ -154,6 +155,9 @@ public class SimbaObjectInfoDumper
 
 			if (zip != null) zip.close();
 		}
+
+		long end = System.currentTimeMillis();
+		System.out.println("SimbaObjectInfoDumper took " + (end - start) + " ms");
 	}
 
 	public SimbaObjectInfoDumper load() throws IOException
@@ -221,6 +225,7 @@ public class SimbaObjectInfoDumper
 		}
 
 		if (object.getInteractType() == 0) return false;
+		if (object.getObjectModels() == null) return false;
 
 		return !object.getName().equalsIgnoreCase("null");
 	}
@@ -246,38 +251,63 @@ public class SimbaObjectInfoDumper
 		return null;
 	}
 
+	private final Map<Integer, CachedObjectData> objectCache = new HashMap<>();
+
+	private static class CachedObjectData {
+		int height;
+		List<Integer> colors;
+
+		CachedObjectData(int height, List<Integer> colors) {
+			this.height = height;
+			this.colors = colors;
+		}
+	}
+
 	private void mapObjects(JsonArray json, int drawBaseX, int drawBaseY, Region region, int z) throws IOException {
-		List<Location> planeLocs = new ArrayList<>();
-		List<Location> pushDownLocs = new ArrayList<>();
-		List<List<Location>> layers = Arrays.asList(planeLocs, pushDownLocs);
-		for (int localX = 0; localX < Region.X; localX++)
-		{
-			int regionX = localX + region.getBaseX();
-			for (int localY = 0; localY < Region.Y; localY++)
-			{
-				int regionY = localY + region.getBaseY();
+		Map<Long, List<Location>> locIndex = new HashMap<>();
 
-				planeLocs.clear();
-				pushDownLocs.clear();
+		for (Location loc : region.getLocations()) {
+			Position pos = loc.getPosition();
+			long key = (((long) pos.getX()) << 32) | ((long) pos.getY() << 16) | pos.getZ();
+			locIndex.computeIfAbsent(key, k -> new ArrayList<>()).add(loc);
+		}
+
+		int baseX = region.getBaseX();
+		int baseY = region.getBaseY();
+
+		for (int localX = 0; localX < Region.X; localX++) {
+			int regionX = baseX + localX;
+
+			for (int localY = 0; localY < Region.Y; localY++) {
+				int regionY = baseY + localY;
+
 				boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
-
 				int tileZ = z + (isBridge ? 1 : 0);
 
-				for (Location loc : region.getLocations())
-				{
-					Position pos = loc.getPosition();
-					if (pos.getX() != regionX || pos.getY() != regionY) continue;
+				long keyMain  = (((long) regionX) << 32) | ((long) regionY << 16) | tileZ;
+				long keyAbove = (((long) regionX) << 32) | ((long) regionY << 16) | (tileZ + 1);
 
-					if (pos.getZ() == tileZ && (region.getTileSetting(z, localX, localY) & 24) == 0)
-						planeLocs.add(loc);
-					else if (z < 3 && pos.getZ() == tileZ + 1 && (region.getTileSetting(z + 1, localX, localY) & 8) != 0)
-						pushDownLocs.add(loc);
+				List<Location> candidatesMain  = locIndex.getOrDefault(keyMain,  Collections.emptyList());
+				List<Location> candidatesAbove = locIndex.getOrDefault(keyAbove, Collections.emptyList());
+
+				List<Location> planeLocs    = new ArrayList<>();
+				List<Location> pushDownLocs = new ArrayList<>();
+
+				int tileSettingZ = region.getTileSetting(z, localX, localY);
+
+				if ((tileSettingZ & 24) == 0) {
+					planeLocs.addAll(candidatesMain);
 				}
 
-				for (List<Location> locs : layers)
-				{
-					for (Location location : locs)
-					{
+				if (z < 3) {
+					int tileSettingZ1 = region.getTileSetting(z + 1, localX, localY);
+					if ((tileSettingZ1 & 8) != 0) {
+						pushDownLocs.addAll(candidatesAbove);
+					}
+				}
+				
+				for (List<Location> locs : Arrays.asList(planeLocs, pushDownLocs)) {
+					for (Location location : locs) {
 						int type = location.getType();
 						ObjectDefinition object = resolveMorphedObject(location, findObject(location.getId()));
 
@@ -285,11 +315,18 @@ public class SimbaObjectInfoDumper
 							continue;
 						}
 
-						int height = 0;
-						List<Integer> colors = new ArrayList<>();
+						int height;
+						List<Integer> colors;
+						CachedObjectData cached = objectCache.get(object.getObjectID());
 
-						if (object.getObjectModels() != null)
+						if (cached != null) {
+							height = cached.height;
+							colors = cached.colors;
+						}
+						else
 						{
+							height = 0;
+							colors = new ArrayList<>();
 							for (int i = 0; i < object.getObjectModels().length; i++) {
 								Archive archive = index.getArchive(object.getObjectModels()[i]);
 								byte[] contents = archive.decompress(store.getStorage().loadArchive(archive));
@@ -299,6 +336,7 @@ public class SimbaObjectInfoDumper
 								if (height == 0) height = exporter.getSimbaHeight();
 								colors.addAll(exporter.getSimbaColors());
 							}
+							objectCache.put(object.getObjectID(), new CachedObjectData(height, colors));
 						}
 
 						int rotation = location.getOrientation();
@@ -351,9 +389,9 @@ public class SimbaObjectInfoDumper
 						obj.add("rotations", rotations);
 
 						JsonArray jsonColors = new JsonArray();
-                        for (Integer color : colors) {
-                            jsonColors.add(color);
-                        }
+						for (Integer color : colors) {
+							jsonColors.add(color);
+						}
 						obj.add("colors", jsonColors);
 						json.add(obj);
 					}
