@@ -404,9 +404,10 @@ public class SimbaObjectInfoDumper
 	{
 		for (Region region : regionLoader.getRegions())
 		{
+			int maxY = 199;
 			JsonArray regionJSON = new JsonArray();
 			try {
-				mapObjects(regionJSON, region.getBaseX(),  regionLoader.getHighestY().getBaseY()- region.getBaseY(), region, z);
+				mapObjects(regionJSON, region.getBaseX(),  maxY-region.getBaseY(), region, z);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
