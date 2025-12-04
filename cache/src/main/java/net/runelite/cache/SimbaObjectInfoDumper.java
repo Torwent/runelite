@@ -404,19 +404,9 @@ public class SimbaObjectInfoDumper
 	{
 		for (Region region : regionLoader.getRegions())
 		{
-			int baseX = region.getBaseX();
-			int baseY = region.getBaseY();
-
-			// to pixel X
-			int drawBaseX = baseX - regionLoader.getLowestX().getBaseX();
-
-			// to pixel Y. top most y is 0, but the top most
-			// region has the greatest y, so invert
-			int drawBaseY = regionLoader.getHighestY().getBaseY() - baseY;
-
 			JsonArray regionJSON = new JsonArray();
 			try {
-				mapObjects(regionJSON, drawBaseX, drawBaseY, region, z);
+				mapObjects(regionJSON, region.getBaseX(),  region.getBaseY(), region, z);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
