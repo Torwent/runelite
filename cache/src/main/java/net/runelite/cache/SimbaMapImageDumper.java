@@ -132,6 +132,8 @@ public class SimbaMapImageDumper
 		options.addOption(Option.builder().longOpt("cachedir").hasArg().required().build());
 		options.addOption(Option.builder().longOpt("cachename").hasArg().required().build());
 		options.addOption(Option.builder().longOpt("outputdir").hasArg().required().build());
+		options.addOption("noicons", false, "Disable rendering icons");
+
 
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd;
@@ -155,6 +157,8 @@ public class SimbaMapImageDumper
 		final String outputDirectory = cmd.getOptionValue("outputdir") + File.separator + cacheName;
 		final String outputDirectoryEx = outputDirectory + File.separator + "map";
 
+
+
 		XteaKeyManager xteaKeyManager = new XteaKeyManager();
 		try (FileInputStream fin = new FileInputStream(xteaJSONPath))
 		{
@@ -174,11 +178,19 @@ public class SimbaMapImageDumper
 		{
 			store.load();
 			SimbaMapImageDumper dumper = new SimbaMapImageDumper(store, xteaKeyManager);
+			if (cmd.hasOption("noicons")) {
+				dumper.setRenderIcons(false);
+			}
 			dumper.load();
 
 			ZipOutputStream zip = null;
 			if (exportChunks) {
-				zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "map.zip"))));
+				if (cmd.hasOption("noicons")) {
+					zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "map-noicons.zip"))));
+				}
+				else {
+					zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "map.zip"))));
+				}
 			}
 
 			for (int i = 0; i < Region.Z; ++i)
