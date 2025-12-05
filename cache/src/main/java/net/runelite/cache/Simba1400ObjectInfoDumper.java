@@ -109,7 +109,7 @@ public class Simba1400ObjectInfoDumper
 
 		final String xteaJSONPath = mainDir + File.separator + cacheName + File.separator + cacheName.replace("cache-", "keys-") + ".json";
 		final String outputDirectory = cmd.getOptionValue("outputdir") + File.separator + cacheName;
-		final String outputDirectoryEx = outputDirectory + File.separator + "objects1400";
+		final String outputDirectoryEx = outputDirectory + File.separator + "objects";
 
 		XteaKeyManager xteaKeyManager = new XteaKeyManager();
 		try (FileInputStream fin = new FileInputStream(xteaJSONPath))
@@ -135,7 +135,7 @@ public class Simba1400ObjectInfoDumper
 
 			ZipOutputStream zip = null;
 			if (exportChunks) {
-				zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "objects.zip"))));
+				zip = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(new File(outputDirectory, "objects1400.zip"))));
 			}
 
 			for (int i = 0; i < Region.Z; ++i)
