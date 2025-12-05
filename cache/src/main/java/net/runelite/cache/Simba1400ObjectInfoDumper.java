@@ -50,7 +50,7 @@ import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Accessors(chain = true)
-public class SimbaObjectInfoDumper
+public class Simba1400ObjectInfoDumper
 {
 	private static final int MAP_SCALE = 4; // this squared is the number of pixels per map square
 	private final Store store;
@@ -68,12 +68,12 @@ public class SimbaObjectInfoDumper
 	private static final boolean exportEmptyJSONs = false;
 
 
-	public SimbaObjectInfoDumper(Store store, KeyProvider keyProvider)
+	public Simba1400ObjectInfoDumper(Store store, KeyProvider keyProvider)
 	{
 		this(store, new RegionLoader(store, keyProvider));
 	}
 
-	public SimbaObjectInfoDumper(Store store, RegionLoader regionLoader)
+	public Simba1400ObjectInfoDumper(Store store, RegionLoader regionLoader)
 	{
 		this.store = store;
 		this.regionLoader = regionLoader;
@@ -109,7 +109,7 @@ public class SimbaObjectInfoDumper
 
 		final String xteaJSONPath = mainDir + File.separator + cacheName + File.separator + cacheName.replace("cache-", "keys-") + ".json";
 		final String outputDirectory = cmd.getOptionValue("outputdir") + File.separator + cacheName;
-		final String outputDirectoryEx = outputDirectory + File.separator + "objects";
+		final String outputDirectoryEx = outputDirectory + File.separator + "objects1400";
 
 		XteaKeyManager xteaKeyManager = new XteaKeyManager();
 		try (FileInputStream fin = new FileInputStream(xteaJSONPath))
@@ -130,7 +130,7 @@ public class SimbaObjectInfoDumper
 		{
 			store.load();
 
-			SimbaObjectInfoDumper dumper = new SimbaObjectInfoDumper(store, xteaKeyManager);
+			Simba1400ObjectInfoDumper dumper = new Simba1400ObjectInfoDumper(store, xteaKeyManager);
 			dumper.load();
 
 			ZipOutputStream zip = null;
@@ -160,7 +160,7 @@ public class SimbaObjectInfoDumper
 		System.out.println("SimbaObjectInfoDumper took " + (end - start) + " ms");
 	}
 
-	public SimbaObjectInfoDumper load() throws IOException
+	public Simba1400ObjectInfoDumper load() throws IOException
 	{
 		objectManager.load();
 		index = store.getIndex(IndexType.MODELS);
@@ -305,7 +305,7 @@ public class SimbaObjectInfoDumper
 						pushDownLocs.addAll(candidatesAbove);
 					}
 				}
-				
+
 				for (List<Location> locs : Arrays.asList(planeLocs, pushDownLocs)) {
 					for (Location location : locs) {
 						int type = location.getType();
@@ -404,10 +404,19 @@ public class SimbaObjectInfoDumper
 	{
 		for (Region region : regionLoader.getRegions())
 		{
+			int baseX = region.getBaseX();
+			int baseY = region.getBaseY();
+
+			// to pixel X
+			int drawBaseX = baseX - regionLoader.getLowestX().getBaseX() - 64;
+
+			// to pixel Y. top most y is 0, but the top most
+			// region has the greatest y, so invert
+			int drawBaseY = regionLoader.getHighestY().getBaseY() - baseY;
+
 			JsonArray regionJSON = new JsonArray();
 			try {
-				//invert Y
-				mapObjects(regionJSON, region.getBaseX(),  regionLoader.getHighestY().getBaseY() - region.getBaseY(), region, z);
+				mapObjects(regionJSON, drawBaseX, drawBaseY, region, z);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
