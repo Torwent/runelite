@@ -559,49 +559,37 @@ public class SimbaCollisionMapDumper
 	private void drawObjects(BufferedImage image, int drawBaseX, int drawBaseY, Region region, int z)
 	{
 		if (!renderObjects) return;
-		Map<Long, List<Location>> locIndex = new HashMap<>();
 
-		for (Location loc : region.getLocations()) {
-			Position pos = loc.getPosition();
-			long key = (((long) pos.getX()) << 32) | ((long) pos.getY() << 16) | pos.getZ();
-			locIndex.computeIfAbsent(key, k -> new ArrayList<>()).add(loc);
-		}
+		List<Location> planeLocs = new ArrayList<>();
+		List<Location> pushDownLocs = new ArrayList<>();
+		List<List<Location>> layers = Arrays.asList(planeLocs, pushDownLocs);
 
-		int baseX = region.getBaseX();
-		int baseY = region.getBaseY();
+		for (int localX = 0; localX < Region.X; localX++)
+		{
+			int regionX = localX + region.getBaseX();
+			for (int localY = 0; localY < Region.Y; localY++)
+			{
+				int regionY = localY + region.getBaseY();
 
-		for (int localX = 0; localX < Region.X; localX++) {
-			int regionX = baseX + localX;
-
-			for (int localY = 0; localY < Region.Y; localY++) {
-				int regionY = baseY + localY;
-
+				planeLocs.clear();
+				pushDownLocs.clear();
 				boolean isBridge = (region.getTileSetting(1, localX, localY) & 2) != 0;
+
 				int tileZ = z + (isBridge ? 1 : 0);
 
-				long keyMain = (((long) regionX) << 32) | ((long) regionY << 16) | tileZ;
-				long keyAbove = (((long) regionX) << 32) | ((long) regionY << 16) | (tileZ + 1);
+				for (Location loc : region.getLocations())
+				{
+					Position pos = loc.getPosition();
+					if (pos.getX() != regionX || pos.getY() != regionY) continue;
 
-				List<Location> candidatesMain = locIndex.getOrDefault(keyMain, Collections.emptyList());
-				List<Location> candidatesAbove = locIndex.getOrDefault(keyAbove, Collections.emptyList());
-
-				List<Location> planeLocs = new ArrayList<>();
-				List<Location> pushDownLocs = new ArrayList<>();
-
-				int tileSettingZ = region.getTileSetting(z, localX, localY);
-
-				if ((tileSettingZ & 24) == 0) {
-					planeLocs.addAll(candidatesMain);
+					if (pos.getZ() == tileZ && (region.getTileSetting(z, localX, localY) & 24) == 0)
+						planeLocs.add(loc);
 				}
 
-				if (z < 3) {
-					int tileSettingZ1 = region.getTileSetting(z + 1, localX, localY);
-					if ((tileSettingZ1 & 8) != 0) {
-						pushDownLocs.addAll(candidatesAbove);
-					}
-				}
-				for (List<Location> locs : Arrays.asList(planeLocs, pushDownLocs)) {
-					for (Location location : locs) {
+				for (List<Location> locs : layers)
+				{
+					for (Location location : locs)
+					{
 						int type = location.getType();
 						if (type >= 4 && type <= 8){
 							continue;
@@ -641,6 +629,8 @@ public class SimbaCollisionMapDumper
 						int rotation = location.getOrientation();
 						int drawX = (drawBaseX + localX) * MAP_SCALE;
 						int drawY = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
+
+
 
 						if (type >= 0 && type <= 3)
 						{
@@ -756,7 +746,6 @@ public class SimbaCollisionMapDumper
 								}
 							}
 						}
-
 					}
 				}
 			}

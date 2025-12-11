@@ -340,7 +340,9 @@ public class SimbaObjectInfoDumper
 						}
 
 						int rotation = location.getOrientation();
+
 						int x = (drawBaseX + localX) * MAP_SCALE;
+
 						int y = (drawBaseY + (Region.Y - object.getSizeY() - localY)) * MAP_SCALE;
 
 						int xSize = object.getSizeX() * MAP_SCALE;
@@ -407,7 +409,7 @@ public class SimbaObjectInfoDumper
 			JsonArray regionJSON = new JsonArray();
 			try {
 				//invert Y
-				mapObjects(regionJSON, region.getBaseX(),  regionLoader.getHighestY().getBaseY() - region.getBaseY(), region, z);
+				mapObjects(regionJSON, region.getBaseX(),regionLoader.getHighestY().getBaseY() - region.getBaseY(), region, z);
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
