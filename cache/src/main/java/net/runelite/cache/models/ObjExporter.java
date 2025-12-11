@@ -150,12 +150,14 @@ public class ObjExporter
 
 	public int getSimbaHeight()
 	{
-		int height = 0;
+		int hi = 0;
+		int lo = 0xffffffff;
 		for (int i = 0; i < model.getVertexY().length; i++) {
 			int current = model.getVertexY()[i] * -1;
-			if (current > height) height = current;
+			if (current > hi) hi = current;
+			if (current < lo) lo = current;
 		}
-		return height;
+		return hi-lo;
 	}
 
 	public List<Integer> getSimbaColors(){
