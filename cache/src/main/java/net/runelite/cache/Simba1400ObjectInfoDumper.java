@@ -244,6 +244,12 @@ public class Simba1400ObjectInfoDumper
 			ObjectDefinition morphed = findObject(id);
 
 			if (isValidObject(location, morphed)) {
+				if (morphed.getCategory() == 0) {
+					int cat = baseObject.getCategory();
+					if (cat != 0) {
+						morphed.setCategory(baseObject.getCategory());
+					}
+				}
 				return morphed;
 			}
 		}
