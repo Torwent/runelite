@@ -73,12 +73,7 @@ public class SimbaNPCDumper
 			npcs.put(f.getFileId(), def);
 		}
 	}
-
-	public Collection<NpcDefinition> getNPCs()
-	{
-		return Collections.unmodifiableCollection(npcs.values());
-	}
-
+	
 	public NpcDefinition getNPC(int npcID)
 	{
 		return npcs.get(npcID);
