@@ -68,7 +68,6 @@ public class ObjectDefinition
 	private boolean obstructsGround = false;
 	private int contouredGround = -1;
 	private int supportsItems = -1;
-	private int raise;
 	private int[] configChangeDest;
 	private int category;
 	private boolean isRotated = false;
