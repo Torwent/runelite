@@ -137,3 +137,17 @@ tasks.register<Jar>("fatJar") {
         }
     })
 }
+
+tasks.register<JavaExec>("runClass") {
+    // Use Gradle project property for main class
+    val mainClassProp = project.findProperty("mainClass") as String?
+        ?: throw GradleException("Please provide -PmainClass=<fully.qualified.ClassName>")
+
+    mainClass.set(mainClassProp)
+
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    // Read CLI args for this class
+    val runArgs = project.findProperty("args") as String? ?: ""
+    args = runArgs.split(" ").filter { it.isNotBlank() }
+}
