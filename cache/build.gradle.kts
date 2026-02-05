@@ -72,10 +72,53 @@ sourceSets {
     }
 }
 
+val shadowJar = tasks.register<Jar>("shadowJar") {
+    description = "Create a combined JAR with all dependencies"
+    group = BasePlugin.BUILD_GROUP
+
+    // Ensure ANTLR runs before we try to pack the JAR
+    dependsOn(tasks.generateGrammarSource)
+    dependsOn(configurations.runtimeClasspath)
+
+    manifest {
+        attributes["Main-Class"] = "net.runelite.cache.Cache"
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // 1. Include the project's compiled classes
+    from(sourceSets.main.get().output)
+
+    // 2. Include all dependencies, extracting them from their JARs
+    from(configurations.runtimeClasspath.map { it.map { file ->
+        if (file.isDirectory) file else zipTree(file)
+    } })
+
+    // 3. Exclude signature files and ANTLR metadata to avoid bloat/errors
+    exclude(
+        "META-INF/INDEX.LIST",
+        "META-INF/*.SF",
+        "META-INF/*.DSA",
+        "META-INF/*.RSA",
+        "**/module-info.class",
+        "**/*.tokens",
+        "**/*.interp"
+    )
+
+    archiveClassifier = "shadow"
+    archiveFileName = "${project.name}-${project.version}-shaded.jar"
+}
+
+// Hook it into the standard 'assemble' lifecycle
+tasks.assemble { dependsOn(shadowJar) }
+
 publishing {
     publications {
         create<MavenPublication>("cache") {
             from(components["java"])
+            artifact(shadowJar) {
+                classifier = "shaded"
+            }
         }
     }
 }
@@ -136,18 +179,4 @@ tasks.register<Jar>("fatJar") {
             if (it.isDirectory) it else zipTree(it)
         }
     })
-}
-
-tasks.register<JavaExec>("runClass") {
-    // Use Gradle project property for main class
-    val mainClassProp = project.findProperty("mainClass") as String?
-        ?: throw GradleException("Please provide -PmainClass=<fully.qualified.ClassName>")
-
-    mainClass.set(mainClassProp)
-
-    classpath = sourceSets.main.get().runtimeClasspath
-
-    // Read CLI args for this class
-    val runArgs = project.findProperty("args") as String? ?: ""
-    args = runArgs.split(" ").filter { it.isNotBlank() }
 }
