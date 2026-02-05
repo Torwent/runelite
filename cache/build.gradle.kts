@@ -28,6 +28,7 @@ plugins {
     `maven-publish`
     antlr
     alias(libs.plugins.lombok)
+    application
 }
 
 lombok.version = libs.versions.lombok.get()
@@ -35,6 +36,10 @@ lombok.version = libs.versions.lombok.get()
 java {
     withJavadocJar()
     withSourcesJar()
+}
+
+application {
+    mainClass.set("net.runelite.cache.Cache")
 }
 
 dependencies {
