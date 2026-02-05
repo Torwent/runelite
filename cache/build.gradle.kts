@@ -120,18 +120,15 @@ tasks.register<Jar>("fatJar") {
     group = "build"
     description = "Assembles a fat JAR containing all dependencies"
 
-    archiveBaseName.set("cache")      // name of the jar
-    archiveClassifier.set("")          // removes "-all" suffix
+    archiveBaseName.set("cache")
+    archiveClassifier.set("")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    // Include compiled classes
     from(sourceSets.main.get().output)
 
-    // Include all runtime dependencies
-    dependsOn(configurations.runtimeClasspath)
     from({
-        configurations.runtimeClasspath.get()
-            .filter { it.name.endsWith("jar") }
-            .map { zipTree(it) }
+        configurations.runtimeClasspath.get().map {
+            if (it.isDirectory) it else zipTree(it)
+        }
     })
 }
