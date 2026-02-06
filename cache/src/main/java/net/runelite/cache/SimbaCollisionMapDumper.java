@@ -65,10 +65,10 @@ public class SimbaCollisionMapDumper
 	private static boolean exportChunks = true;
 	private static final boolean exportEmptyImages = true;
 
-	private static int x1 = 48;
-	private static int y1 = 48;
-	private static int x2 = 53;
-	private static int y2 = 53;
+	private static int x1 = -1;
+	private static int y1 = -1;
+	private static int x2 = -1;
+	private static int y2 = -1;
 
 	@Getter
 	@Setter
