@@ -263,7 +263,11 @@ public class SimbaCollisionMapDumper
 			{
 				int drawY = Region.Y - y - 1;
 				int tileSetting = region.getTileSetting(z, x, Region.Y - y - 1);
-				if ((tileSetting & 24) != 0) continue;
+
+				if ((tileSetting & 24) != 0) {
+					drawTile(image, (tileSetting & 1) == 0, drawBaseX, drawBaseY, z, x, y);
+					continue;
+				};
 
 				if (z == 0) {
 					boolean hasBridge = (region.getTileSetting(1, x, drawY) & 2) != 0;
