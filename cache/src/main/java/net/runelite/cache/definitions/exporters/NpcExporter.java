@@ -74,7 +74,7 @@ public class NpcExporter
 		JsonArray actions = new JsonArray();
 
 		for (int i = 0; i < npc.getOps().getOps().size(); i++) {
-			if (npc.getOps().getOps().get(i).text != null) actions.add(npc.getOps().getOps().get(i).text);
+			if (npc.getOps().getOps().get(i) != null) actions.add(npc.getOps().getOps().get(i).text);
 		}
 
 		obj.add("actions", actions);

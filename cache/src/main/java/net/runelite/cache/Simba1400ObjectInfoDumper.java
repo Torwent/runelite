@@ -44,6 +44,8 @@ import net.runelite.cache.util.XteaKeyManager;
 import org.apache.commons.cli.*;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -112,9 +114,12 @@ public class Simba1400ObjectInfoDumper
 		final String outputDirectoryEx = outputDirectory + File.separator + "objects";
 
 		XteaKeyManager xteaKeyManager = new XteaKeyManager();
-		try (FileInputStream fin = new FileInputStream(xteaJSONPath))
+		if (Files.exists(Path.of(xteaJSONPath)))
 		{
-			xteaKeyManager.loadKeys(fin);
+			try (FileInputStream fin = new FileInputStream(xteaJSONPath))
+			{
+				xteaKeyManager.loadKeys(fin);
+			}
 		}
 
 		File base = new File(cacheDirectory);
