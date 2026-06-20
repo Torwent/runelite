@@ -72,6 +72,12 @@ public class SimbaCollisionMapDumper
 	private static int x2 = -1;
 	private static int y2 = -1;
 
+	private static int mainlandX1 = 15;
+	private static int mainlandY1 = 32;
+	private static int mainlandX2 = 62;
+	private static int mainlandY2 = 65;
+
+
 	@Getter
 	@Setter
 	private boolean renderMap = true;
@@ -99,6 +105,13 @@ public class SimbaCollisionMapDumper
 		this.areas = new AreaManager(store);
 		this.objectManager = new ObjectManager(store);
 	}
+
+	private static final BufferedImage BLACK_CHUNK =
+			new BufferedImage(
+					Region.X * MAP_SCALE,
+					Region.Y * MAP_SCALE,
+					BufferedImage.TYPE_INT_RGB
+			);
 
 	public static void main(String[] args) throws IOException
 	{
@@ -216,11 +229,26 @@ public class SimbaCollisionMapDumper
 	public static boolean isImageEmpty(BufferedImage img) {
 		if (exportEmptyImages) return false;
 
+		int width = img.getWidth();
+		int height = img.getHeight();
+
 		int color = img.getRGB(0,0);
-		for (int y = 1; y < img.getHeight(); y++)
-			for (int x = 0; x < img.getWidth(); x++)
+		for (int y = 1; y < height; y++)
+			for (int x = 0; x < width; x++)
 				if (img.getRGB(x, y) != color)
 					return false;
+		return true;
+	}
+
+	private static boolean isFullyWhite(BufferedImage img) {
+		int width = img.getWidth();
+		int height = img.getHeight();
+
+		for (int y = 0; y < height; y++)
+			for (int x = 0; x < width; x++)
+				if (img.getRGB(x, y) != 0xFFFFFFFF)
+					return false;
+
 		return true;
 	}
 
@@ -251,6 +279,15 @@ public class SimbaCollisionMapDumper
 			if (exportChunks) {
 				BufferedImage chunk = image.getSubimage(drawBaseX * MAP_SCALE, drawBaseY * MAP_SCALE, Region.X * MAP_SCALE, Region.Y * MAP_SCALE);
 				if (!isImageEmpty(chunk)) {
+
+					boolean insideMainland = region.getRegionX() >= mainlandX1 &&
+						region.getRegionX() <= mainlandX2 &&
+						region.getRegionY() >= mainlandY1 &&
+						region.getRegionY() <= mainlandY2;
+
+					if (!insideMainland && isFullyWhite(chunk)) {
+						chunk = BLACK_CHUNK;
+					}
 					zip.putNextEntry(new ZipEntry(z + "-" + region.getRegionX() + "-" + region.getRegionY() + ".png"));
 					ImageIO.write(chunk, "png", zip);
 				}
