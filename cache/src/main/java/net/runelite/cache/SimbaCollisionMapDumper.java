@@ -280,7 +280,7 @@ public class SimbaCollisionMapDumper
 				BufferedImage chunk = image.getSubimage(drawBaseX * MAP_SCALE, drawBaseY * MAP_SCALE, Region.X * MAP_SCALE, Region.Y * MAP_SCALE);
 				if (!isImageEmpty(chunk)) {
 
-					boolean insideMainland = region.getRegionX() >= mainlandX1 &&
+					boolean insideMainland = (z == 0) && region.getRegionX() >= mainlandX1 &&
 						region.getRegionX() <= mainlandX2 &&
 						region.getRegionY() >= mainlandY1 &&
 						region.getRegionY() <= mainlandY2;
